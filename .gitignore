@@ -1,0 +1,8 @@
+
+/x64
+/.vs
+/DebuggerDemo/x64
+/NeoScriptTools/x64
+/V4ScriptDebugger/x64
+/V8ScriptDebugger/x64
+*.user

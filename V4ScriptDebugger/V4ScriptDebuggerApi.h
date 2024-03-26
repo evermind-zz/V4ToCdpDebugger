@@ -65,7 +65,7 @@ typedef QObject* (*pNewV4ScriptDebuggerBackend)(CV4EngineItf* engine);
 typedef QObject* (*pNewJSScriptDebuggerFrontend)();
 typedef QMainWindow* (*pNewJSScriptDebugger)(QObject* frontend, QWidget *parent, Qt::WindowFlags flags);
 
-Q_ALWAYS_INLINE QObject* newV4ScriptDebuggerBackendDynamic(CV4EngineItf* engine)
+__forceinline QObject* newV4ScriptDebuggerBackendDynamic(CV4EngineItf* engine)
 {
     pNewV4ScriptDebuggerBackend myNewV4ScriptDebuggerBackend = (pNewV4ScriptDebuggerBackend)QLibrary::resolve("V4ScriptDebugger", "newV4ScriptDebuggerBackend");
     if (myNewV4ScriptDebuggerBackend)
@@ -73,7 +73,7 @@ Q_ALWAYS_INLINE QObject* newV4ScriptDebuggerBackendDynamic(CV4EngineItf* engine)
     return NULL;
 }
 
-Q_ALWAYS_INLINE QObject* newJSScriptDebuggerFrontendDynamic()
+__forceinline QObject* newJSScriptDebuggerFrontendDynamic()
 {
     pNewJSScriptDebuggerFrontend myNewJSScriptDebuggerFrontend = (pNewJSScriptDebuggerFrontend)QLibrary::resolve("V4ScriptDebugger", "newJSScriptDebuggerFrontend");
     if (myNewJSScriptDebuggerFrontend)
@@ -81,7 +81,7 @@ Q_ALWAYS_INLINE QObject* newJSScriptDebuggerFrontendDynamic()
     return NULL;
 }
 
-Q_ALWAYS_INLINE QMainWindow* newJSScriptDebuggerDynamic(QObject* frontend, QWidget *parent = nullptr, Qt::WindowFlags flags = {})
+__forceinline QMainWindow* newJSScriptDebuggerDynamic(QObject* frontend, QWidget *parent = nullptr, Qt::WindowFlags flags = {})
 {
     pNewJSScriptDebugger myNewJSScriptDebugger = (pNewJSScriptDebugger)QLibrary::resolve("V4ScriptDebugger", "newJSScriptDebugger");
     if (myNewJSScriptDebugger)

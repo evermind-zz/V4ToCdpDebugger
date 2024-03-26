@@ -729,7 +729,7 @@ void CV4ScriptDebuggerBackend::debuggerPaused(CV4DebugAgent* debugger, int reaso
         if (prim->isPrimitive())
             Attributes["message"] = prim->toQStringNoThrow();
 		//Attributes["message"] = scope.engine->exceptionValue->toQStringNoThrow(); // warning this clears the exception
-		Attributes["value"] = d->engine->self()->toScriptValue(scope.engine->exceptionValue).toVariant();
+		Attributes["value"] = d->engine->self()->toScriptValue(scope.engine->exceptionValue->asReturnedValue()).toVariant();
 		Attributes["hasExceptionHandler"] = true; // todo
 	}
 	Event["attributes"] = Attributes;
