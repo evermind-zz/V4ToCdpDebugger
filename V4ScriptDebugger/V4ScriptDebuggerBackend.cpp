@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2023 David Xanatos (xanasoft.com) All rights reserved.
+** Copyright (C) 2023-2025 David Xanatos (xanasoft.com) All rights reserved.
 ** Contact: XanatosDavid@gmil.com
 **
 **
@@ -722,6 +722,7 @@ void CV4ScriptDebuggerBackend::debuggerPaused(CV4DebugAgent* debugger, int reaso
 	{
 		QV4::Scope scope(d->debugger->engine());
 		QV4::ScopedValue ex(scope);
+#if QT_VERSION < QT_VERSION_CHECK(6, 8, 0)
 		quint8 hadException = scope.engine->hasException;
 		scope.engine->hasException = false;
 		QV4::ScopedValue prim(scope, QV4::RuntimeHelpers::toPrimitive(scope.engine->exceptionValue->asReturnedValue(), QV4::STRING_HINT));
@@ -731,6 +732,22 @@ void CV4ScriptDebuggerBackend::debuggerPaused(CV4DebugAgent* debugger, int reaso
 		//Attributes["message"] = scope.engine->exceptionValue->toQStringNoThrow(); // warning this clears the exception
 		Attributes["value"] = d->engine->self()->toScriptValue(scope.engine->exceptionValue->asReturnedValue()).toVariant();
 		Attributes["hasExceptionHandler"] = true; // todo
+#else
+		if (scope.engine->exceptionValue) 
+		{
+			quint8 hadException = scope.engine->hasException;
+			scope.engine->hasException = false;
+			QV4::ReturnedValue exceptionRV = scope.engine->exceptionValue->asReturnedValue();
+			QV4::ScopedValue prim(scope,QV4::RuntimeHelpers::toPrimitive(QV4::Value::fromReturnedValue(exceptionRV), QV4::STRING_HINT));
+			scope.engine->hasException = hadException;
+			if (prim->isPrimitive())
+				Attributes["message"] = prim->toQStringNoThrow();
+			Attributes["value"] = d->engine->self()->toScriptValue(QV4::Value::fromReturnedValue(exceptionRV)).toVariant();
+			Attributes["hasExceptionHandler"] = true;
+		}
+		else
+			Attributes["hasExceptionHandler"] = false;
+#endif
 	}
 	Event["attributes"] = Attributes;
 

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2023 David Xanatos (xanasoft.com) All rights reserved.
+** Copyright (C) 2023-2025 David Xanatos (xanasoft.com) All rights reserved.
 ** Contact: XanatosDavid@gmil.com
 **
 **
@@ -61,7 +61,14 @@ void CV4GetPropsJob::run()
             QV4::ScopedValue v(scope);
             QV4::Heap::InternalClass* ic = ctxt->internalClass();
             for (uint i = 0; i < ic->size; ++i) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 8, 0)
                 QString name = ic->keyAt(i);
+#else
+                QV4::ReturnedValue keyRV = ic->keyAt(i);
+                QV4::Value keyVal = QV4::Value::fromReturnedValue(keyRV);
+                QV4::String *keyStr = keyVal.stringValue();
+                QString name = keyStr ? keyStr->toQStringNoThrow() : QString();
+#endif
                 v = static_cast<QV4::Heap::CallContext*>(ctxt->d())->locals[i];
                 uint ref = handler->addRef(v);
                 result.properties.append(SV4Property(handler->getObject(v, ref), name));

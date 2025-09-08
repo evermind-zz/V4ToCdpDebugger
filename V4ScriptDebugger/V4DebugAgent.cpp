@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2023 David Xanatos (xanasoft.com) All rights reserved.
+** Copyright (C) 2023-2025 David Xanatos (xanasoft.com) All rights reserved.
 ** Contact: XanatosDavid@gmil.com
 **
 **
@@ -24,6 +24,10 @@
 #include <QThread>
 
 #include <private/qv4script_p.h>
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+#include <private/qv4stackframe_p.h>
+#endif
 
 #include "V4DebugJobs.h"
 

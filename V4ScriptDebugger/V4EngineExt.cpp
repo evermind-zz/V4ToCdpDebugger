@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2023 David Xanatos (xanasoft.com) All rights reserved.
+** Copyright (C) 2023-2025 David Xanatos (xanasoft.com) All rights reserved.
 ** Contact: XanatosDavid@gmil.com
 **
 **
@@ -131,7 +131,7 @@ QV4::ReturnedValue evalCall(const QV4::FunctionObject* b, const QV4::Value* v, c
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		v4->throwError(ret.toString());
 #else
-        v4->throwError(QJSValuePrivate::asReturnedValue(&ret));
+        v4->throwError(QV4::Value::fromReturnedValue(QJSValuePrivate::asReturnedValue(&ret)));
 #endif
         return QV4::Encode::undefined();
     } else {
