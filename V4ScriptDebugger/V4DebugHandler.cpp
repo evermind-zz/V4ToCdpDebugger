@@ -225,13 +225,13 @@ uint CV4DebugHandler::addRef(QV4::Value value)
 {
     QV4::Scope scope(m_engine);
     QV4::ScopedObject refArray(scope, m_refArray.value());
-    
+
     // find and return already existing object
     for (uint i = 0; i < refArray->getLength(); ++i) {
         if (refArray->get(i) == value.rawValue())
             return i;
     }
- 
+
     quint8 hadException = m_engine->hasException;
     m_engine->hasException = false; // ensure put works
 

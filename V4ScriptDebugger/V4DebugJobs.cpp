@@ -113,7 +113,7 @@ void CV4SetValueJob::run()
         v = handler->engine()->newString(value.data.toString());
     else if (value.ref != -1)
         v = handler->getValue(value.ref);
-        
+
     if (handle.type == UV4Handle::eObject)
     {
         QV4::ScopedObject o(scope, handler->getValue(handle.ref));
