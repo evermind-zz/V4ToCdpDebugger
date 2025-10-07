@@ -23,8 +23,14 @@
 #ifndef CV4SCRIPTDEBUGGERAPI_H
 #define CV4SCRIPTDEBUGGERAPI_H
 
+#ifndef _MSC_VER
+    #define __forceinline Q_ALWAYS_INLINE
+#endif
+
 #include <QJSEngine>
+#ifndef CDP_FRONTEND
 #include <QMainWindow>
+#endif /* CDP_FRONTEND */
 #include <QLibrary>
 
 #include "v4scriptdebugger_global.h"
@@ -57,11 +63,15 @@ public:
 
 extern "C" {
     V4SCRIPTDEBUGGER_EXPORT QObject* newV4ScriptDebuggerBackend(CV4EngineItf* engine);
+#ifndef CDP_FRONTEND
     V4SCRIPTDEBUGGER_EXPORT QObject* newJSScriptDebuggerFrontend();
     V4SCRIPTDEBUGGER_EXPORT QMainWindow* newJSScriptDebugger(QObject* frontend, QWidget *parent = nullptr, Qt::WindowFlags flags = {});
+#endif /* CDP_FRONTEND */
 }
 
 typedef QObject* (*pNewV4ScriptDebuggerBackend)(CV4EngineItf* engine);
+
+#ifndef CDP_FRONTEND
 typedef QObject* (*pNewJSScriptDebuggerFrontend)();
 typedef QMainWindow* (*pNewJSScriptDebugger)(QObject* frontend, QWidget *parent, Qt::WindowFlags flags);
 
@@ -88,5 +98,6 @@ __forceinline QMainWindow* newJSScriptDebuggerDynamic(QObject* frontend, QWidget
         return myNewJSScriptDebugger(frontend, parent, flags);
     return NULL;
 }
+#endif /* CDP_FRONTEND */
 
 #endif

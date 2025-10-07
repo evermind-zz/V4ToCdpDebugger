@@ -22,8 +22,10 @@
 
 #include "V4ScriptDebuggerApi.h"
 #include "V4ScriptDebuggerBackend.h"
+#ifndef CDP_FRONTEND
 #include "../NeoScriptTools/JSDebugging/JSScriptDebuggerFrontend.h"
 #include "../NeoScriptTools/JSDebugging/JSScriptDebugger.h"
+#endif /* CDP_FRONTEND */
 
 QObject* newV4ScriptDebuggerBackend(CV4EngineItf* engine)
 {
@@ -32,6 +34,7 @@ QObject* newV4ScriptDebuggerBackend(CV4EngineItf* engine)
 	return pDebuggerBackend;
 }
 
+#ifndef CDP_FRONTEND
 QObject* newJSScriptDebuggerFrontend()
 {
 	return new CJSScriptDebuggerFrontend();
@@ -43,3 +46,4 @@ QMainWindow* newJSScriptDebugger(QObject* frontend, QWidget *parent, Qt::WindowF
 	pDebugger->attachTo((CJSScriptDebuggerFrontend*)frontend);
 	return pDebugger;
 }
+#endif /* CDP_FRONTEND */
