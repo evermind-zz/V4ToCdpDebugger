@@ -47,6 +47,7 @@ public:
 
 signals:
 	void sendResponse(const QVariant& var);
+	void newV4EventAvailable(const int noOfPendingEvents);
 
 public slots:
 	void pause();

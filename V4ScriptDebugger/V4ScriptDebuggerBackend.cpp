@@ -752,6 +752,7 @@ void CV4ScriptDebuggerBackend::debuggerPaused(CV4DebugAgent* debugger, int reaso
 	Event["attributes"] = Attributes;
 
 	d->pendingEvents.append(Event);
+	emit newV4EventAvailable(d->pendingEvents.size());
 }
 
 void CV4ScriptDebuggerBackend::evaluateFinished(const QJSValue& ret)
@@ -779,6 +780,7 @@ void CV4ScriptDebuggerBackend::evalFinished(const QVariant& Value, const QString
 	Event["attributes"] = Attributes;
 
 	d->pendingEvents.append(Event);
+	emit newV4EventAvailable(d->pendingEvents.size());
 }
 
 void CV4ScriptDebuggerBackend::printTrace(const QString& Message)
@@ -792,6 +794,7 @@ void CV4ScriptDebuggerBackend::printTrace(const QString& Message)
 	Event["attributes"] = Attributes;
 
 	d->pendingEvents.append(Event);
+	emit newV4EventAvailable(d->pendingEvents.size());
 }
 
 void CV4ScriptDebuggerBackend::invokeDebugger()
