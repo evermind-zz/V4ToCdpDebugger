@@ -63,6 +63,7 @@ public:
 
 	int						nextScriptValueIteratorId;
 	QMap<int, struct SV4ValueIterator*> scriptValueIterators;
+	QMap<QString, int>		filenameAndBreakpointToBreakpointId;
 };
 
 CV4ScriptDebuggerBackend::CV4ScriptDebuggerBackend(QObject *parent)
@@ -129,6 +130,13 @@ QVariant CV4ScriptDebuggerBackend::handleRequest(const QVariant& var)
 void CV4ScriptDebuggerBackend::processRequest(const QVariant& var)
 {
 	emit sendResponse(handleRequest(var));
+}
+
+static void deleteFromMapByValue(QMap<QString, int>& map, int targetValue)
+{
+	auto it = std::find_if(map.begin(), map.end(), [&](const int& v){ return v == targetValue; });
+	if (it != map.end())
+		map.remove(it.key());
 }
 
 QVariantMap CV4ScriptDebuggerBackend::onCommand(int id, const QVariantMap& Command)
@@ -236,6 +244,7 @@ QVariantMap CV4ScriptDebuggerBackend::onCommand(int id, const QVariantMap& Comma
 			bp.fileName = d->engine->getScriptName(scriptId);
 			int breakPointId = d->debugger->setBreakpoint(bp);
 			QString breakpointIdentfier = bp.fileName + ":" + QString::number(bp.lineNumber);
+			d->filenameAndBreakpointToBreakpointId[breakpointIdentfier] = breakPointId;
 			Response["result"] = breakPointId;
 		}
 		else {
@@ -244,6 +253,7 @@ QVariantMap CV4ScriptDebuggerBackend::onCommand(int id, const QVariantMap& Comma
 	}
 	else if (typeStr == "DeleteBreakpoint")
 	{
+		deleteFromMapByValue(d->filenameAndBreakpointToBreakpointId, Attributes["breakpointId"].toInt());
 		d->debugger->deleteBreakpoint(Attributes["breakpointId"].toInt());
 	}
 	else if (typeStr == "DeleteAllBreakpoints")
@@ -716,16 +726,21 @@ void CV4ScriptDebuggerBackend::debuggerPaused(CV4DebugAgent* debugger, int reaso
 	Q_ASSERT(debugger == d->debugger);
 
 	QVariantMap Event;
+	QVariantMap Attributes;
 	switch (reason)
 	{
 	case CV4DebugAgent::PauseRequest:	Event["type"] = "Interrupted"; break;
-	case CV4DebugAgent::BreakPointHit:	Event["type"] = "Breakpoint"; break;
+	case CV4DebugAgent::BreakPointHit:	{
+							Event["type"] = "Breakpoint";
+							QString breakPointIdStr = fileName + ":" + QString::number(lineNumber);
+							Attributes["breakPointId"] = d->filenameAndBreakpointToBreakpointId.value(breakPointIdStr, -1);
+							break;
+						}
 	case CV4DebugAgent::Stepped:		Event["type"] = "SteppingFinished"; break; 
 	case CV4DebugAgent::LocationReached:Event["type"] = "LocationReached"; break;
 	case CV4DebugAgent::DebuggerInvoked:Event["type"] = "DebuggerInvocationRequest"; break;
 	case CV4DebugAgent::Exception:		Event["type"] = "Exception"; break;
 	}
-	QVariantMap Attributes;
 	Attributes["scriptId"] = d->engine->getScriptId(QUrl(fileName).fileName());
 	Attributes["fileName"] = QUrl(fileName).fileName();
 	Attributes["lineNumber"] = lineNumber;
