@@ -53,7 +53,7 @@ public:
     QString getScriptName(qint64 scriptId) const { if (scriptId < m_Scripts.size()) return m_Scripts[scriptId].Name; return QString(); }
     QString getScriptSource(qint64 scriptId) const { if (scriptId < m_Scripts.size()) return m_Scripts[scriptId].Source; return QString(); }
     int getScriptLineNumber(qint64 scriptId) const { if (scriptId < m_Scripts.size()) return m_Scripts[scriptId].LineNumber; return -1; }
-    qint64 getScriptId(const QString& fileName) const { return m_ScriptIDs.value(fileName.toLower()); }
+    qint64 getScriptId(const QString& fileName) const { return m_ScriptIDs.value(fileName.toLower(), -1); } // -1 if not found
 
     QString trackScript(const QString& program, const QString& fileName, int lineNumber = 1);
 
