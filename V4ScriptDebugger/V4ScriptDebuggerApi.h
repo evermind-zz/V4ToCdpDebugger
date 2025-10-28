@@ -41,6 +41,7 @@ public:
     virtual QJSEngine* self() = 0;
 
     virtual int getScriptCount() const = 0;
+    virtual QSet<QString> getScriptNames() const = 0;
     virtual QString getScriptName(qint64 scriptId) const = 0;
     virtual QString getScriptSource(qint64 scriptId) const = 0;
     virtual int getScriptLineNumber(qint64 scriptId) const = 0;

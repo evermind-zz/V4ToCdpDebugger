@@ -42,6 +42,13 @@ public:
 
     Q_INVOKABLE QJSValue evaluateScript(const QString& program, const QString& fileName, int lineNumber = 1);
 
+    QSet<QString> getScriptNames() const
+    {
+        QSet<QString> names;
+        for (const SScript& s : m_Scripts)
+            names.insert(s.Name);
+        return names;
+    }
     int getScriptCount() const { return m_Scripts.count(); }
     QString getScriptName(qint64 scriptId) const { if (scriptId < m_Scripts.size()) return m_Scripts[scriptId].Name; return QString(); }
     QString getScriptSource(qint64 scriptId) const { if (scriptId < m_Scripts.size()) return m_Scripts[scriptId].Source; return QString(); }

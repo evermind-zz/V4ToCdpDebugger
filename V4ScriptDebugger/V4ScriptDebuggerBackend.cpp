@@ -304,7 +304,7 @@ QVariantMap CV4ScriptDebuggerBackend::onCommand(int id, const QVariantMap& Comma
 	{
 		QVariantList Scripts;
 		//for(int i=0; i < d->engine->getScriptCount(); i++)
-		foreach(const QString& fileName, d->debugger->getCurrentScripts())
+		foreach(const QString& fileName, d->engine->getScriptNames())
 		{
 			int i = d->engine->getScriptId(fileName);
 			QVariantMap Result;
