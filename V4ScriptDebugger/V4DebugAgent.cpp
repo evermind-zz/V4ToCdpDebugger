@@ -30,6 +30,7 @@
 #endif
 
 #include "V4DebugJobs.h"
+#include <QRegularExpression>
 
 inline uint qHash(const CV4DebugAgent::SBreakKey& v, uint seed = 0)
 {
@@ -249,9 +250,25 @@ bool CV4DebugAgent::updateBreakpoint(int id, const SV4Breakpoint& Breakpoint)
 	return true;
 }
 
+static QString normalizeScriptName(const QString &input)
+{
+	static const QRegularExpression re(
+		R"(^\s*(?:file:)?\s*([^()]+?)(?:\s*\(\d+\))?\s*$)"
+	);
+
+	QRegularExpressionMatch match = re.match(input);
+	if (match.hasMatch()) {
+		QString name = match.captured(1).trimmed();
+		return name;
+	}
+
+	return input.trimmed();
+}
+
 CV4DebugAgent::PauseReason CV4DebugAgent::checkBreakpoints(const QString& fileName, int lineNumber)
 {
-	auto I = m_breakpointHash.find(SBreakKey(QUrl(fileName).fileName(), lineNumber));
+	QString normFileName = normalizeScriptName(fileName);
+	auto I = m_breakpointHash.find(SBreakKey(normFileName, lineNumber));
 	if (I == m_breakpointHash.end())
 		return DontBreak;
 
@@ -298,10 +315,15 @@ void CV4DebugAgent::signalAndWait(PauseReason reason)
 	m_stackTrace = m_engine->stackTrace();
 
 	// notify the debugger
-	if(m_engine->currentStackFrame)
-		emit debuggerPaused(this, reason, m_engine->currentStackFrame->v4Function->sourceFile(), m_engine->currentStackFrame->lineNumber());
-	else if(m_engine->globalCode)
-		emit debuggerPaused(this, reason, m_engine->globalCode->sourceFile(), 1);
+	QString normScriptName;
+	if (m_engine->currentStackFrame) {
+		normScriptName = normalizeScriptName(m_engine->currentStackFrame->v4Function->sourceFile());
+		emit debuggerPaused(this, reason, normScriptName, m_engine->currentStackFrame->lineNumber());
+	}
+	else if (m_engine->globalCode) {
+		normScriptName = normalizeScriptName(m_engine->globalCode->sourceFile());
+		emit debuggerPaused(this, reason, normScriptName, 1);
+	}
 	else
 		emit debuggerPaused(this, reason, QStringLiteral("unknown"), 1);
 
