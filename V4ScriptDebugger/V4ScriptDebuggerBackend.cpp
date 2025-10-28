@@ -685,7 +685,7 @@ void CV4ScriptDebuggerBackend::attachTo(class CV4EngineItf* engine)
 	d->engine = engine;
 	d->debugger = new CV4DebugAgent(engine->self()->handle());
 	d->handler = new CV4DebugHandler(engine->self()->handle(), this);
-	connect(d->debugger, SIGNAL(debuggerPaused(CV4DebugAgent*, int, const QString&, int)), this, SLOT(debuggerPaused(CV4DebugAgent*, int, const QString&, int)));
+	connect(d->debugger, SIGNAL(debuggerPaused(CV4DebugAgent*, int, const QString&, CV4SourceLocation, int )), this, SLOT(debuggerPaused(CV4DebugAgent*, int, const QString&, CV4SourceLocation, int)));
 	connect(d->engine->self(), SIGNAL(evaluateFinished(const QJSValue&)), this, SLOT(evaluateFinished(const QJSValue&)));
 	connect(d->engine->self(), SIGNAL(printTrace(const QString&)), this, SLOT(printTrace(const QString&)));
 	connect(d->engine->self(), SIGNAL(invokeDebugger()), this, SLOT(invokeDebugger()), Qt::BlockingQueuedConnection);
@@ -719,7 +719,7 @@ void CV4ScriptDebuggerBackend::detach()
 	d->engine = NULL;
 }
 
-void CV4ScriptDebuggerBackend::debuggerPaused(CV4DebugAgent* debugger, int reason, const QString& fileName, int lineNumber)
+void CV4ScriptDebuggerBackend::debuggerPaused(CV4DebugAgent* debugger, int reason, const QString& fileName, CV4SourceLocation location, int lineNumber)
 {
 	Q_D(CV4ScriptDebuggerBackend);
 
@@ -744,7 +744,8 @@ void CV4ScriptDebuggerBackend::debuggerPaused(CV4DebugAgent* debugger, int reaso
 	Attributes["scriptId"] = d->engine->getScriptId(QUrl(fileName).fileName());
 	Attributes["fileName"] = QUrl(fileName).fileName();
 	Attributes["lineNumber"] = lineNumber;
-	Attributes["columnNumber"] = 0; // todo
+	Attributes["columnNumber"] = location.column;
+
 	if (reason == CV4DebugAgent::Exception) 
 	{
 		QV4::Scope scope(d->debugger->engine());

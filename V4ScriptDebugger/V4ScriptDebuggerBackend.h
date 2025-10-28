@@ -29,8 +29,8 @@
 #include <QVariant>
 
 #include <QJSEngine>
+#include "V4DebugAgent.h"
 
-class CV4DebugAgent;
 
 class CV4ScriptDebuggerBackendPrivate;
 class V4SCRIPTDEBUGGER_EXPORT CV4ScriptDebuggerBackend : public QObject
@@ -55,7 +55,7 @@ public slots:
 	void processRequest(const QVariant& var);
 
 private slots:
-    void debuggerPaused(CV4DebugAgent* debugger, int reason, const QString& fileName, int lineNumber);
+    void debuggerPaused(CV4DebugAgent* debugger, int reason, const QString& fileName, CV4SourceLocation location, int lineNumber);
     void evaluateFinished(const QJSValue& ret);
     void printTrace(const QString& Message);
 	void invokeDebugger();

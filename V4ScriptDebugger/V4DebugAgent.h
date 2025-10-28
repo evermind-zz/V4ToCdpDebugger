@@ -56,6 +56,17 @@ struct SV4Scope {
     QString type;
 };
 
+    struct CV4SourceLocation
+    {
+        CV4SourceLocation() {}
+        CV4SourceLocation(const QString &sourceFile, quint16 line, quint16 column)
+            : sourceFile(sourceFile), line(line), column(column) {}
+        QString sourceFile;
+        quint16 line = 0;
+        quint16 column = 0;
+    };
+Q_DECLARE_METATYPE(CV4SourceLocation)
+
 class CV4DebugAgent : public QV4::Debugging::Debugger
 {
     Q_OBJECT
@@ -115,7 +126,7 @@ public:
     static QV4::Heap::ExecutionContext* findScope(QV4::Heap::ExecutionContext* ctx, int scopeNr);
 
 signals:
-    void debuggerPaused(CV4DebugAgent* self, int reason, const QString& fileName, int lineNumber);
+    void debuggerPaused(CV4DebugAgent* self, int reason, const QString& fileName, CV4SourceLocation location, int lineNumber);
 
 private slots:
     void runJob();

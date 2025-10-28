@@ -301,6 +301,11 @@ CV4DebugAgent::PauseReason CV4DebugAgent::checkBreakpoints(const QString& fileNa
 	return BreakPointHit;
 }
 
+static CV4SourceLocation convertSrcLocationQmltoCv4(const QQmlSourceLocation &srcLoc)
+{
+	return CV4SourceLocation(srcLoc.sourceFile, srcLoc.line, srcLoc.column);
+}
+
 void CV4DebugAgent::signalAndWait(PauseReason reason)
 {
 	if (m_runningJob)
@@ -315,17 +320,20 @@ void CV4DebugAgent::signalAndWait(PauseReason reason)
 	m_stackTrace = m_engine->stackTrace();
 
 	// notify the debugger
+	CV4SourceLocation srcLoc;
 	QString normScriptName;
 	if (m_engine->currentStackFrame) {
+		srcLoc = convertSrcLocationQmltoCv4(m_engine->currentStackFrame->v4Function->sourceLocation());
 		normScriptName = normalizeScriptName(m_engine->currentStackFrame->v4Function->sourceFile());
-		emit debuggerPaused(this, reason, normScriptName, m_engine->currentStackFrame->lineNumber());
+		emit debuggerPaused(this, reason, normScriptName, srcLoc, m_engine->currentStackFrame->lineNumber());
 	}
 	else if (m_engine->globalCode) {
+		srcLoc = convertSrcLocationQmltoCv4(m_engine->globalCode->sourceLocation());
 		normScriptName = normalizeScriptName(m_engine->globalCode->sourceFile());
-		emit debuggerPaused(this, reason, normScriptName, 1);
+		emit debuggerPaused(this, reason, normScriptName, srcLoc, 1);
 	}
 	else
-		emit debuggerPaused(this, reason, QStringLiteral("unknown"), 1);
+		emit debuggerPaused(this, reason, QStringLiteral("unknown"), srcLoc, 1);
 
 	// wait and run jobs
 	for (;;) {
