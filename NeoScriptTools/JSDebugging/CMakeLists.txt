@@ -1,0 +1,247 @@
+# NeoScriptTools/CMakeLists.txt -- not working
+# Builds the NeoScriptTools shared library with Qt6 and qjson dependency.
+
+cmake_minimum_required(VERSION 3.21)
+project(NeoScriptTools LANGUAGES CXX)
+
+# Set C++ standard and enable Qt MOC and RCC
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+# Find Qt6
+find_package(Qt6 REQUIRED COMPONENTS Core Network Widgets Gui)
+
+# Source files (from NeoScriptTools.pri)
+set(SOURCES
+    # debugging/qscriptbreakpointdata.cpp
+    # debugging/qscriptbreakpointsmodel.cpp
+    # debugging/qscriptbreakpointswidget.cpp
+    # debugging/qscriptbreakpointswidgetinterface.cpp
+    # debugging/qscriptcompletiontask.cpp
+    # debugging/qscriptcompletiontaskinterface.cpp
+    # debugging/qscriptdebugger.cpp
+    # debugging/qscriptdebuggercodefinderwidget.cpp
+    # debugging/qscriptdebuggercodefinderwidgetinterface.cpp
+    # debugging/qscriptdebuggercodeview.cpp
+    # debugging/qscriptdebuggercodeviewinterface.cpp
+    # debugging/qscriptdebuggercodewidget.cpp
+    # debugging/qscriptdebuggercodewidgetinterface.cpp
+    # debugging/qscriptdebuggercommand.cpp
+    # debugging/qscriptdebuggercommandschedulerfrontend.cpp
+    # debugging/qscriptdebuggercommandschedulerjob.cpp
+    # debugging/qscriptdebuggerconsolewidget.cpp
+    # debugging/qscriptdebuggerconsolewidgetinterface.cpp
+    # debugging/qscriptdebuggercontextinfo.cpp
+    # debugging/qscriptdebuggerevent.cpp
+    # debugging/qscriptdebuggerfrontend.cpp
+    # debugging/qscriptdebuggerjob.cpp
+    # debugging/qscriptdebuggerlocalsmodel.cpp
+    # debugging/qscriptdebuggerlocalswidget.cpp
+    # debugging/qscriptdebuggerlocalswidgetinterface.cpp
+    # debugging/qscriptdebuggerresponse.cpp
+    # debugging/qscriptdebuggerscriptsmodel.cpp
+    # debugging/qscriptdebuggerscriptswidget.cpp
+    # debugging/qscriptdebuggerscriptswidgetinterface.cpp
+    # debugging/qscriptdebuggerstackmodel.cpp
+    # debugging/qscriptdebuggerstackwidget.cpp
+    # debugging/qscriptdebuggerstackwidgetinterface.cpp
+    # debugging/qscriptdebuggerstandardwidgetfactory.cpp
+    # debugging/qscriptdebuggervalue.cpp
+    # debugging/qscriptdebuggervalueproperty.cpp
+    # debugging/qscriptdebugoutputwidget.cpp
+    # debugging/qscriptdebugoutputwidgetinterface.cpp
+    # debugging/qscriptedit.cpp
+    # debugging/qscripterrorlogwidget.cpp
+    # debugging/qscripterrorlogwidgetinterface.cpp
+    # debugging/qscriptscriptdata.cpp
+    # debugging/qscriptstdmessagehandler.cpp
+    # debugging/qscriptsyntaxhighlighter.cpp
+    # debugging/qscriptenginedebugger.cpp
+    # debugging/qscriptenginedebuggerfrontend.cpp
+    # debugging/qscriptdebuggerconsole.cpp
+    # debugging/qscriptdebuggerconsolecommand.cpp
+    # debugging/qscriptdebuggerconsolecommandgroupdata.cpp
+    # debugging/qscriptdebuggerconsolecommandjob.cpp
+    # debugging/qscriptdebuggerconsolecommandmanager.cpp
+    # debugging/qscriptdebuggerconsoleglobalobject.cpp
+    # debugging/qscriptdebuggerscriptedconsolecommand.cpp
+    # debugging/qscriptdebuggeragent.cpp
+    # debugging/qscriptdebuggerbackend.cpp
+    # debugging/qscriptdebuggercommandexecutor.cpp
+    # debugging/qscriptobjectsnapshot.cpp
+    # debugging/qscriptvalueproperty.cpp
+    # #V8Debugging/V8DebugAdapter.cpp
+    # #../V8ScriptDebugger/V8DebugAdapter.cpp
+    # #V8Debugging/V8ScriptDebuggerFrontend.cpp
+    # #../V8ScriptDebugger/V8ScriptDebuggerFrontend.cpp
+    JSScriptDebugger.cpp
+    JSScriptDebuggerBackend.cpp
+    JSScriptDebuggerFrontend.cpp
+    JSScriptDebuggerFrontendInterface.cpp
+)
+
+# Header files (from NeoScriptTools.pri)
+set(HEADERS
+    #neoscripttools_global.h
+    #debugging/qscriptbreakpointdata_p.h
+    #debugging/qscriptbreakpointswidgetinterface_p_p.h
+    #debugging/qscriptcompletionproviderinterface_p.h
+    #debugging/qscriptcompletiontaskinterface_p_p.h
+    #debugging/qscriptdebuggercodefinderwidgetinterface_p_p.h
+    #debugging/qscriptdebuggercodeviewinterface_p_p.h
+    #debugging/qscriptdebuggercodewidgetinterface_p_p.h
+    #debugging/qscriptdebuggercommandschedulerfrontend_p.h
+    #debugging/qscriptdebuggercommandschedulerinterface_p.h
+    #debugging/qscriptdebuggercommandschedulerjob_p.h
+    #debugging/qscriptdebuggercommandschedulerjob_p_p.h
+    #debugging/qscriptdebuggercommand_p.h
+    #debugging/qscriptdebuggerconsolehistorianinterface_p.h
+    #debugging/qscriptdebuggerconsolewidgetinterface_p_p.h
+    #debugging/qscriptdebuggercustomviewinterface.h
+    #debugging/qscriptdebuggercontextinfo_p.h
+    #debugging/qscriptdebuggereventhandlerinterface_p.h
+    #debugging/qscriptdebuggerevent_p.h
+    #debugging/qscriptdebuggerfrontend_p.h
+    #debugging/qscriptdebuggerfrontend_p_p.h
+    #debugging/qscriptdebuggerjobschedulerinterface_p.h
+    #debugging/qscriptdebuggerjob_p.h
+    #debugging/qscriptdebuggerjob_p_p.h
+    #debugging/qscriptdebuggerlocalswidgetinterface_p_p.h
+    #debugging/qscriptdebuggerobjectsnapshotdelta_p.h
+    #debugging/qscriptdebuggerresponsehandlerinterface_p.h
+    #debugging/qscriptdebuggerresponse_p.h
+    #debugging/qscriptdebuggerscriptswidgetinterface_p_p.h
+    #debugging/qscriptdebuggerstackmodel_p.h
+    #debugging/qscriptdebuggerstackwidgetinterface_p_p.h
+    #debugging/qscriptdebuggerstandardwidgetfactory_p.h
+    #debugging/qscriptdebuggervalueproperty_p.h
+    #debugging/qscriptdebuggervalue_p.h
+    #debugging/qscriptdebuggerwidgetfactoryinterface_p.h
+    #debugging/qscriptdebugger_p.h
+    #debugging/qscriptdebugger_p_p.h
+    #debugging/qscriptdebugoutputwidgetinterface_p_p.h
+    #debugging/qscripterrorlogwidgetinterface_p_p.h
+    #debugging/qscriptmessagehandlerinterface_p.h
+    #debugging/qscriptscriptdata_p.h
+    #debugging/qscriptstdmessagehandler_p.h
+    #debugging/qscriptsyntaxhighlighter_p.h
+    #debugging/qscripttooltipproviderinterface_p.h
+    #debugging/qscripterrorlogwidgetinterface_p.h
+    #debugging/qscripterrorlogwidget_p.h
+    #debugging/qscriptedit_p.h
+    #debugging/qscriptdebugoutputwidgetinterface_p.h
+    #debugging/qscriptdebugoutputwidget_p.h
+    #debugging/qscriptdebuggerstackwidgetinterface_p.h
+    #debugging/qscriptdebuggerstackwidget_p_p.h
+    #debugging/qscriptdebuggerstackwidget_p.h
+    #debugging/qscriptdebuggerscriptswidgetinterface_p.h
+    #debugging/qscriptdebuggerscriptswidget_p_p.h
+    #debugging/qscriptdebuggerscriptswidget_p.h
+    #debugging/qscriptdebuggerscriptsmodel_p.h
+    #debugging/qscriptdebuggerlocalswidgetinterface_p.h
+    #debugging/qscriptdebuggerlocalswidget_p_p.h
+    #debugging/qscriptdebuggerlocalswidget_p.h
+    #debugging/qscriptdebuggerlocalsmodel_p.h
+    #debugging/qscriptdebuggerconsolewidgetinterface_p.h
+    #debugging/qscriptdebuggerconsolewidget_p_p.h
+    #debugging/qscriptdebuggerconsolewidget_p.h
+    #debugging/qscriptdebuggercodewidgetinterface_p.h
+    #debugging/qscriptdebuggercodewidget_p_p.h
+    #debugging/qscriptdebuggercodewidget_p.h
+    #debugging/qscriptdebuggercodeviewinterface_p.h
+    #debugging/qscriptdebuggercodeview_p.h
+    #debugging/qscriptdebuggercodefinderwidgetinterface_p.h
+    #debugging/qscriptdebuggercodefinderwidget_p_p.h
+    #debugging/qscriptdebuggercodefinderwidget_p.h
+    #debugging/qscriptcompletiontaskinterface_p.h
+    #debugging/qscriptcompletiontask_p.h
+    #debugging/qscriptbreakpointswidgetinterface_p.h
+    #debugging/qscriptbreakpointswidget_p_p.h
+    #debugging/qscriptbreakpointswidget_p.h
+    #debugging/qscriptbreakpointsmodel_p.h
+    #debugging/qscriptenginedebugger.h
+    #debugging/qscriptenginedebuggerfrontend_p.h
+    #debugging/qscriptenginedebugger_p.h
+    #debugging/qscriptdebuggerconsolecommandgroupdata_p.h
+    #debugging/qscriptdebuggerconsolecommandjob_p.h
+    #debugging/qscriptdebuggerconsolecommandjob_p_p.h
+    #debugging/qscriptdebuggerconsolecommandmanager_p.h
+    #debugging/qscriptdebuggerconsolecommand_p.h
+    #debugging/qscriptdebuggerconsolecommand_p_p.h
+    #debugging/qscriptdebuggerscriptedconsolecommand_p.h
+    #debugging/qscriptdebuggerconsoleglobalobject_p.h
+    #debugging/qscriptdebuggerconsole_p.h
+    #debugging/qscriptdebuggeragent_p.h
+    #debugging/qscriptdebuggeragent_p_p.h
+    #debugging/qscriptdebuggerbackend_p.h
+    #debugging/qscriptdebuggerbackend_p_p.h
+    #debugging/qscriptdebuggercommandexecutor_p.h
+    #debugging/qscriptobjectsnapshot_p.h
+    #debugging/qscriptvalueproperty_p.h
+    #V8Debugging/V8DebugAdapter.h
+    #../V8ScriptDebugger/V8DebugAdapter.h
+    #../V8ScriptDebugger/V8ScriptDebuggerFrontend.h
+    #V8Debugging/V8ScriptDebuggerFrontend.h
+    JSScriptDebugger.h
+    JSScriptDebuggerFrontendInterface.h
+    JSScriptDebuggerBackend.h
+    JSScriptDebuggerFrontend.h
+)
+
+# Resource files (from NeoScriptTools.pri)
+##set(RESOURCES
+##    debugging/scripttools_debugging.qrc
+##)
+
+# Define shared library
+add_library(NeoScriptTools SHARED ${SOURCES} ${HEADERS} ${RESOURCES})
+
+# Include directories
+target_include_directories(NeoScriptTools PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/debugging
+    ${CMAKE_CURRENT_SOURCE_DIR}/V8Debugging
+    ${CMAKE_CURRENT_SOURCE_DIR}/JSDebugging
+)
+
+# Compiler definitions (from .pro)
+target_compile_definitions(NeoScriptTools PRIVATE
+    NEOSCRIPTTOOLS_LIB
+    QT_LARGEFILE_SUPPORT
+    QT_DLL
+    QT_NETWORK_LIB
+    QT_WIDGETS_LIB
+)
+
+# Compiler flags (from .pro: -std=c++11, debug/release)
+target_compile_options(NeoScriptTools PRIVATE
+    -Wall -Wextra
+    -std=c++17  # Upgraded from .pro's c++11
+    $<$<CONFIG:Debug>:-g -O0>
+    $<$<CONFIG:Release>:-O3>
+    -fexceptions
+)
+
+# Linker flags (from .pro: -rdynamic on Linux)
+set_target_properties(NeoScriptTools PROPERTIES
+    LINK_FLAGS "-rdynamic"
+)
+
+# Link Qt6
+# find_library(QJSON_LIB NAMES qjson libqjson)
+target_link_libraries(NeoScriptTools PRIVATE
+    Qt6::Core
+    Qt6::Network
+    Qt6::Widgets
+    Qt6::Gui
+    #${QJSON_LIB}
+)
+
+# Installation
+install(TARGETS NeoScriptTools
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+)
