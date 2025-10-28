@@ -225,10 +225,22 @@ QVariantMap CV4ScriptDebuggerBackend::onCommand(int id, const QVariantMap& Comma
 
 		SV4Breakpoint bp;
 		bp.fromVariant(in);
-		if (quint64 scriptId = in["scriptId"].toLongLong())
-			bp.fileName = d->engine->getScriptName(scriptId);
+		qint64 scriptId = in.value("scriptId", -1).toLongLong();
+		QString scriptName = in.value("fileName", "").toString();  // extention to original V4 protocol
 
-		Response["result"] = d->debugger->setBreakpoint(bp);
+		if (scriptId == -1) {
+			scriptId = d->engine->getScriptId(scriptName);
+		}
+
+		if (scriptId > -1) {
+			bp.fileName = d->engine->getScriptName(scriptId);
+			int breakPointId = d->debugger->setBreakpoint(bp);
+			QString breakpointIdentfier = bp.fileName + ":" + QString::number(bp.lineNumber);
+			Response["result"] = breakPointId;
+		}
+		else {
+			Response["error"] = "UnknownScriptSpecified";
+		}
 	}
 	else if (typeStr == "DeleteBreakpoint")
 	{
