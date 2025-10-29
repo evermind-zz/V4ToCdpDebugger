@@ -44,6 +44,10 @@
 
 #include "V4ScriptDebuggerApi.h"
 
+// DEBUG_LOGGING_ENABLED via CMake needs to be enabled to spill out stuff. See debug_out.h for more
+#include "debug_out.h"
+#include "dump_variant.h"
+
 class CV4ScriptDebuggerBackendPrivate : public QObjectPrivate
 {
 	Q_DECLARE_PUBLIC(CV4ScriptDebuggerBackend)
@@ -153,6 +157,7 @@ QVariantMap CV4ScriptDebuggerBackend::onCommand(int id, const QVariantMap& Comma
 	QByteArray Temp = doc.toJson();
 	//qDebug() << "cmd: " << typeStr;
 #endif
+	DEBUG_LOG << "XXX V4 command: " << dumpVariant(Command);
 
 	if (!d->debugger) {
 		Response["error"] = "DetachedError";
@@ -165,7 +170,7 @@ QVariantMap CV4ScriptDebuggerBackend::onCommand(int id, const QVariantMap& Comma
 	//
 	if (d->debugger->thread() != d->engine->self()->thread()) {
 		d->debugger->moveToThread(d->engine->self()->thread());
-		qDebug() << "V4DebugAgent moved to engine's thread";
+		DEBUG_LOG << "V4DebugAgent moved to engine's thread";
 	}
 
 	
@@ -232,6 +237,7 @@ QVariantMap CV4ScriptDebuggerBackend::onCommand(int id, const QVariantMap& Comma
 		QVariantMap in = Attributes["breakpointData"].toMap();
 
 		SV4Breakpoint bp;
+		DEBUG_LOG << "XXX Setting breakpoint: " << dumpVariant(in);
 		bp.fromVariant(in);
 		qint64 scriptId = in.value("scriptId", -1).toLongLong();
 		QString scriptName = in.value("fileName", "").toString();  // extention to original V4 protocol
@@ -246,8 +252,10 @@ QVariantMap CV4ScriptDebuggerBackend::onCommand(int id, const QVariantMap& Comma
 			QString breakpointIdentfier = bp.fileName + ":" + QString::number(bp.lineNumber);
 			d->filenameAndBreakpointToBreakpointId[breakpointIdentfier] = breakPointId;
 			Response["result"] = breakPointId;
+			DEBUG_LOG << "XXX Setting breakpoint for filename: " << bp.fileName << " with breakpointIdentfier: " << breakpointIdentfier << " breakpointId: " << breakPointId;
 		}
 		else {
+			DEBUG_LOG << "XXX Warning: Setting breakpoint in unknown script: " << scriptName;
 			Response["error"] = "UnknownScriptSpecified";
 		}
 	}
@@ -721,6 +729,7 @@ void CV4ScriptDebuggerBackend::detach()
 
 void CV4ScriptDebuggerBackend::debuggerPaused(CV4DebugAgent* debugger, int reason, const QString& fileName, CV4SourceLocation location, int lineNumber)
 {
+	DEBUG_LOG << "XXX debuggerPaused reason=" << reason << " at " << fileName << ":" << lineNumber;
 	Q_D(CV4ScriptDebuggerBackend);
 
 	Q_ASSERT(debugger == d->debugger);
@@ -733,6 +742,7 @@ void CV4ScriptDebuggerBackend::debuggerPaused(CV4DebugAgent* debugger, int reaso
 	case CV4DebugAgent::BreakPointHit:	{
 							Event["type"] = "Breakpoint";
 							QString breakPointIdStr = fileName + ":" + QString::number(lineNumber);
+							DEBUG_LOG << "XXX breakPointId " << breakPointIdStr;
 							Attributes["breakPointId"] = d->filenameAndBreakpointToBreakpointId.value(breakPointIdStr, -1);
 							break;
 						}
@@ -779,6 +789,7 @@ void CV4ScriptDebuggerBackend::debuggerPaused(CV4DebugAgent* debugger, int reaso
 	}
 	Event["attributes"] = Attributes;
 
+	DEBUG_LOG << "XXX Event: " << dumpVariant(Event);
 	d->pendingEvents.append(Event);
 	emit newV4EventAvailable(d->pendingEvents.size());
 }

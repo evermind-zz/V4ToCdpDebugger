@@ -87,6 +87,7 @@ target_link_libraries(V4ScriptDebugger PRIVATE
     Qt6::Gui
     Qt6::Widgets
     Qt6::Qml
+    Common::Debug
 )
 
 # Installation
