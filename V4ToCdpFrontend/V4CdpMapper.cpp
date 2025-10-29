@@ -7,6 +7,7 @@
 #include <QString>
 #include <QDebug>
 #include <QUrl>
+#include <QRegularExpression>
 
 #include "V4Helpers.h"
 
@@ -19,6 +20,21 @@ static void createNoOpCdpToV4(QVariantMap& v4Request, QVariantMap& cdpRequest) {
         v4Request["Command"] = QVariantMap{{"type", "NoOp"}};
         //v4Request["handled"] = true;
         v4Request[MAPPER_PASSTHROUGH] = true;
+}
+
+static QString normalizeScriptName(const QString &input)
+{
+       static const QRegularExpression re(
+               R"(^\s*(?:.*://)?\s*([^()]+?)(?:\s*\(\d+\))?\s*$)"
+       );
+
+       QRegularExpressionMatch match = re.match(input);
+       if (match.hasMatch()) {
+               QString name = match.captured(1).trimmed();
+               return name;
+       }
+
+       return input.trimmed();
 }
 
 static inline V4CdpMapper::V4OnlyCommands getInternalMethod(const QVariantMap &v4)
@@ -478,8 +494,7 @@ QVariantMap V4CdpMapper::mapCdpToV4Request_debugger(QVariantMap& cdpRequest)
     // --------------------
     else if (method == "Debugger.setBreakpointByUrl") {
         QVariantMap bpData{
-            //{"fileName", QUrl(params.value("url").toString()).fileName()},
-            {"fileName", params.value("url").toString().remove("savvycan://")},
+            {"fileName", normalizeScriptName(params.value("url").toString())},
             {"lineNumber", params.value("lineNumber")},
             {"condtion", params.value("condition")},
             {"enabled", true} // we assume breakpoints are always enabled when set
