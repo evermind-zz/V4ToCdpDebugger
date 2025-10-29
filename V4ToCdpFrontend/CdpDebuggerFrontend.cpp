@@ -17,6 +17,10 @@
 #include <QDebug>
 #include <QStringList>
 
+// DEBUG_LOGGING_ENABLED via CMake needs to be enabled to spill out stuff. See debug_out.h for more
+#include "debug_out.h"
+#include "dump_variant.h"
+
 #include "V4CdpMapper.h"
 #include "V4CdpHelper.h"
 #include "V4Helpers.h"
@@ -80,6 +84,9 @@ void CdpDebuggerFrontend::startServer(quint16 port)
             << ":" << tcpServer->serverPort();
 
     setupHttpRoutes();
+
+    DEBUG_LOG << "XXX CDP HTTP/WS server listening on port" << port;
+    DEBUG_LOG << "XXX CDP Debugger Frontend ready - use " << QString("http://localhost:%1/json/list").arg(port) << " to connect";
 }
 
 void CdpDebuggerFrontend::onNewWebSocketConnection()
@@ -116,8 +123,10 @@ void CdpDebuggerFrontend::setupHttpRoutes()
         [this](const QHttpServerRequest &req) -> QHttpServerWebSocketUpgradeResponse {
             if (req.url().path() == QString("/devtools/page/%1-js").arg(m_frontendName.toLower())
              || req.url().path() == QString("/devtools/browser/%1-js").arg(m_frontendName.toLower())) {
+                DEBUG_LOG << "Accepted WebSocket upgrade request to" << req.url().path();
                 return QHttpServerWebSocketUpgradeResponse::accept();
              } else {
+                DEBUG_LOG << "Rejected WebSocket upgrade request to" << req.url().path();
                 // in case of failure to the next verifier -- if there is one
                 return QHttpServerWebSocketUpgradeResponse::passToNext();
              }
@@ -126,6 +135,7 @@ void CdpDebuggerFrontend::setupHttpRoutes()
 
     m_httpServer->route("/json/version", QHttpServerRequest::Method::Get,
         [this, port](const QHttpServerRequest &request) {
+            DEBUG_LOG << "HTTP GET /json/version from" << request.remoteAddress().toString();
             QJsonObject version {
                 {"Browser", QString("%1-CDP/1.0").arg(m_frontendName)},
                 {"Protocol-Version", "1.3"},
@@ -139,6 +149,7 @@ void CdpDebuggerFrontend::setupHttpRoutes()
 
     m_httpServer->route("/json/list", QHttpServerRequest::Method::Get,
         [this, port](const QHttpServerRequest &request) {
+            // DEBUG_LOG << "HTTP GET /json/list from" << request.remoteAddress().toString();
             QJsonArray targets;
             QJsonObject target {{
                 {"id", QString("%1-js").arg(m_frontendName.toLower())},
@@ -198,6 +209,7 @@ void CdpDebuggerFrontend::onCdpMessageReceived(const QString& message, QWebSocke
         return;
     }
 
+    DEBUG_LOG << "XXX --> CDP Received message:" << message;
     QJsonParseError parseError;
     QJsonDocument doc = QJsonDocument::fromJson(message.toUtf8(), &parseError);
 
@@ -221,6 +233,7 @@ void CdpDebuggerFrontend::onCdpMessageReceived(const QString& message, QWebSocke
         }
 
         QString method = cmd["method"].toString();
+        DEBUG_LOG << "Processing CDP command:" << method << " with id:" << id;
         // Immediate responses (no backend)
         if (method == "Runtime.enable") {
             QJsonObject response{
@@ -258,6 +271,7 @@ void CdpDebuggerFrontend::onCdpMessageReceived(const QString& message, QWebSocke
         else if (!v4Map.isEmpty()) {
             QVariant v4Request = QVariant::fromValue(v4Map);
             wrapperSendRequestToBackend(v4Request);
+            DEBUG_LOG << "Forwarded CDP command to backend:" << method;
         } else {
             qWarning() << "Failed to map CDP command to V4:" << method;
             QJsonObject errorResp{
@@ -275,6 +289,7 @@ void CdpDebuggerFrontend::onCdpMessageReceived(const QString& message, QWebSocke
 
 void CdpDebuggerFrontend::wrapperSendRequestToBackend(const QVariant& request)
 {
+    DEBUG_LOG << "XXX <-- V4 sending request to backend:" << dumpVariant(request, 2);
     emit sendRequestToBackend(request);
 }
 
@@ -283,6 +298,7 @@ void CdpDebuggerFrontend::onCdpDisconnected(QWebSocket *client)
     if (!client)
         return;
 
+    DEBUG_LOG << "CDP client disconnected";
     // Mark for async deletion
     client->deleteLater();
 
@@ -295,6 +311,7 @@ void CdpDebuggerFrontend::onCdpDisconnected(QWebSocket *client)
 
 void CdpDebuggerFrontend::onBackendResponse(const QVariant& response)
 {
+    DEBUG_LOG << "XXX --> V4 received response from backend:" << dumpVariant(response, 2);
     if (!response.canConvert<QVariantMap>()) {
         qWarning() << "Backend response is not a QVariantMap";
         return;
@@ -308,9 +325,12 @@ void CdpDebuggerFrontend::onBackendResponse(const QVariant& response)
             if (autoReplyForSomeEvents(v4Response))
                 return;
             QVariantMap cdpEvent = V4CdpMapper::mapV4EventToCdp(v4Response, m_getHandledByBackend);
+            DEBUG_LOG << "XXX Result of V4CdpMapper::mapV4EventToCdp " << dumpVariant(cdpEvent);
             if (!cdpEvent.isEmpty()) {
+                DEBUG_LOG << "XXX clients are like going crazy: " << m_responseClients.size();
                 for (QPointer<QWebSocket> &client : m_responseClients) {
                     if (!client) {
+                        DEBUG_LOG << "XXX invalid client entry";
                         continue;
                     }
                     sendToClient(client, QJsonDocument::fromVariant(cdpEvent));
@@ -332,10 +352,13 @@ void CdpDebuggerFrontend::onBackendResponse(const QVariant& response)
 
     for (QPointer<QWebSocket> &client : m_responseClients) {
         if (!client) {
+            DEBUG_LOG << "XXX invalid client entry";
             continue;
         }
         sendToClient(client, QJsonDocument::fromVariant(cdpResp));
     }
+
+    DEBUG_LOG << "Sent backend response to client for ID:" << id;
 }
 
 bool CdpDebuggerFrontend::autoReplyForSomeEvents(QVariantMap &v4Resp)
@@ -349,9 +372,11 @@ bool CdpDebuggerFrontend::autoReplyForSomeEvents(QVariantMap &v4Resp)
             {"type", "Resume"},
             {"attributes", QVariantMap{}}};
         blockingV4BackendCall(v4Req);
+        DEBUG_LOG << "XXX --> V4 Event: auto handled event: " << dumpVariant(v4Resp, 2) << " with here generated answer: " << dumpVariant(v4Req, 2);
     }
     else
     {
+        DEBUG_LOG << "XXX --> V4 Event: NOT auto handled unknown event: " << dumpVariant(v4Resp, 2);
         return false;
     }
 
@@ -377,6 +402,7 @@ void CdpDebuggerFrontend::sendInitialEvents(QWebSocket* client)
     sendToClient(client, QJsonDocument(contextCreatedEvent));
 
     createAndSentScriptParsedEvents(client);
+    DEBUG_LOG << "XXX Sent initial CDP events to client based on backend data where needed.";
 }
 
 void CdpDebuggerFrontend::createAndSentScriptParsedEvents(QWebSocket* client)
@@ -396,9 +422,11 @@ void CdpDebuggerFrontend::createAndSentScriptParsedEvents(QWebSocket* client)
 }
 
 QVariant CdpDebuggerFrontend::blockingV4BackendCall(QVariantMap& request) {
+    DEBUG_LOG << "<-- Wrapping request for backend call:" << variantMapToJsonString(request, true);
     // Add a dummy ID for this direct call
     request["ID"] = 0;
     QVariant response = m_getHandledByBackend(request);
+    DEBUG_LOG << "--> Wrapping response for backend call:" << variantMapToJsonString(response.toMap(), true);
     return response;
 }
 
@@ -407,6 +435,7 @@ void CdpDebuggerFrontend::sendToClient(QWebSocket* client, const QJsonDocument& 
     if (client && client->state() == QAbstractSocket::ConnectedState) {
         QString message = doc.toJson(QJsonDocument::Compact);
         client->sendTextMessage(message);
+        DEBUG_LOG << "XXX <-- CDP Sent to client:" << message;
     } else {
         qWarning() << "Cannot send to client - not connected";
     }
@@ -414,6 +443,7 @@ void CdpDebuggerFrontend::sendToClient(QWebSocket* client, const QJsonDocument& 
 
 void CdpDebuggerFrontend::onV4EventAvailable(const int noOfPendingEvents)
 {
+    DEBUG_LOG << "XXX V4 new event available, pending events:" << noOfPendingEvents;
     int remainingEvents = noOfPendingEvents;
     // fetching all events from backend
     while (remainingEvents-- > 0) {

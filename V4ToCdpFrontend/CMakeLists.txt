@@ -46,6 +46,7 @@ target_link_libraries(V4toCdpFrontend PRIVATE
     Qt6::WebSockets
     Qt6::HttpServer
     Qt6::Qml
+    Common::Debug
 )
 
 install(TARGETS V4toCdpFrontend

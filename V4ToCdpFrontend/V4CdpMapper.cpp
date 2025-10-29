@@ -11,6 +11,10 @@
 
 #include "V4Helpers.h"
 
+// DEBUG_LOGGING_ENABLED via CMake needs to be enabled to spill out stuff. See debug_out.h for more
+#include "debug_out.h"
+#include "dump_variant.h"
+
 #define MAPPER_METADATA "_mapper_metadata" // will only be set in a module if it can handle the request
 #define INTERNAL_MAPPER "_mapper_internal" // used for no where no direct CDP equal method exists
 
@@ -359,6 +363,7 @@ QVariantMap V4CdpMapper::mapV4ToCdpResponse_helper_stack(const QVariantMap &v4Re
 // Events (backend -> frontend) — map V4 event to CDP event
 QVariantMap V4CdpMapper::mapV4EventToCdp(const QVariantMap &v4Resp, BackendV4SyncCall backendSyncCall)
 {
+    DEBUG_LOG << "XXX V4CdpMapper::mapV4EventToCdp " << dumpVariant(v4Resp);
     QVariantMap cdp;
 
     QVariantMap v4Event = v4Resp.value("Event").toMap();
@@ -397,7 +402,9 @@ QVariantMap V4CdpMapper::mapV4EventToCdp(const QVariantMap &v4Resp, BackendV4Syn
         QVariantMap request = QVariantMap{{"method", "Debugger.getStackTrace"}}; // I guess we are completly wrong here as we need callFrames
         QVariantMap v4StackTraceReq = mapCdpToV4Request_debugger(request);
         QVariantMap v4StackTraceResp = backendSyncCall(v4StackTraceReq).toMap();
+        DEBUG_LOG << "XXX V4CdpMapper::mapV4EventToCdp: InlineEvalFinished fetching stack trace:" << dumpVariant(v4StackTraceResp);
         QVariantMap cdpResponse = mapV4ToCdpResponse_helper_stack(v4StackTraceResp, request);
+        DEBUG_LOG << "XXX v4 converted to cdpResponse stack trace:" << dumpVariant(cdpResponse);
 
         cdp["params"] = QVariantMap{{"reason", QString("debuggerStatement InlineEvalFinished")}, {"callFrames", QVariantList()}};
     } else if (type == "Trace") {
