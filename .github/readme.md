@@ -256,7 +256,7 @@ response={"method":"Debugger.paused","params":{"callFrames":[],"hitBreakpoints":
 ### Prerequisites
 
 - **Qt 6.8.3+** (`QtQml`, `QtWebSockets`, `QtHttpServer` with private headers)
-  *Note: A stripped-down Qt 6.8.3 library version is used internally (link TBD).*
+  *Note: A stripped-down Qt 6.8.3 version is used. It contains only the relevant qt libraries. Download here: [qt-6.8.3-minimal.tar.xz](https://github.com/evermind-zz/V4ToCdpDebugger/releases/download/packages/qt-6.8.3-minimal.tar.xz).*
 - **C++17** compiler (GCC, Clang)
 - **CMake 3.21+**
 - Optional: `ninja`, `ccache`
